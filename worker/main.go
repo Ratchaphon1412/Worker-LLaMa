@@ -34,10 +34,11 @@ func main() {
 	w := worker.New(c, cfg.TemporalTaskQueue, worker.Options{})
 
 	w.RegisterWorkflow(workflow.AIWorkflow)
-	w.RegisterActivity(activities.LLM)
-	w.RegisterActivity(activities.TTS)
 	w.RegisterActivity(activities.Research)
 	w.RegisterActivity(activities.WebScrap)
+	w.RegisterActivity(activities.LLM)
+	w.RegisterActivity(activities.TTS)
+	w.RegisterActivity(activities.Storage)
 
 	err = w.Run(worker.InterruptCh())
 	if err != nil {

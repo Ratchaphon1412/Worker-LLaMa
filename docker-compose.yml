@@ -56,7 +56,36 @@ services:
       - temporal-network
     ports:
       - 8080:8080
+
+  minio:
+    image: docker.io/bitnami/minio:${MINIO_VERSION}
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    networks:
+      - minio-network
+    volumes:
+      - 'minio_data:/data'
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+      - MINIO_DEFAULT_BUCKETS=${MINIO_DEFAULT_BUCKETS}
+
 networks:
   temporal-network:
     driver: bridge
     name: temporal-network
+  minio-network:
+    driver: bridge
+    name: minio-network
+
+volumes:
+  minio_data:
+    driver: local
+    name: minio_data
+  temporal_postgresql:
+    driver: local
+    name: temporal_postgresql
+  temporal_configs:
+    driver: local
+    name: temporal_configs

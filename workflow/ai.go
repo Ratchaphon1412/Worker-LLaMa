@@ -111,6 +111,13 @@ func AIWorkflow(ctx workflow.Context, prompt string) (string, error) {
 		return "", err
 	}
 
+	// Upload to TTS MinIO
+	if err := workflow.ExecuteActivity(ctx, activities.Storage, conf, fmt.Sprintf("%s.mp3", workflowID), fmt.Sprintf(conf.TTSSaveToLocal+"/%s.mp3", workflowID)).Get(ctx, &answer); err != nil {
+		logger.Error("Activity failed.", "Error", err)
+		return "", err
+	}
+	logger.Info("Storage completed.", "result", answer)
+
 	// Return the result
 	return answerObj.Choices[0].Message.Content, nil
 }

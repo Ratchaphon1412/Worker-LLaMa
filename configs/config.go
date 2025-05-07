@@ -18,4 +18,10 @@ type Config struct {
 	GoogleCustomSearchEngineID string `env:"GOOGLE_CUSTOM_SEARCH_ENGINE_ID"`
 	GoogleCustomSearchURL      string `env:"GOOGLE_CUSTOM_SEARCH_URL"`
 	GoogleMaxResults           int    `env:"GOOGLE_MAX_RESULTS"`
+
+	MinioEndpoint      string `env:"MINIO_ENDPOINT"`
+	MinioUserAccessKey string `env:"MINIO_USER_ACCESS_KEY"`
+	MinioUserSecretKey string `env:"MINIO_USER_SECRET_KEY"`
+	MinioDefaultBucket string `env:"MINIO_DEFAULT_BUCKETS"`
+	MinioSSLEnabled    bool   `env:"MINIO_SSL_ENABLED"`
 }
