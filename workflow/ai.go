@@ -56,19 +56,19 @@ func AIWorkflow(ctx workflow.Context, prompt string) (string, error) {
 	// Research the topic
 	var researchResult activities.ResearchResult
 	if err := workflow.ExecuteActivity(ctx, activities.Research, conf, prompt).Get(ctx, &researchResult); err != nil {
-		logger.Error("Activity failed.", "Error", err)
+		logger.Error("Activity Research Failed Error: ", err)
 		return "", err
 	}
 
-	logger.Info("Research completed.", "result", researchResult)
+	logger.Info("Research completed.", "result : ", researchResult)
 
 	// Scrap the result
 	var scrapResult []string
 	if err := workflow.ExecuteActivity(ctx, activities.WebScrap, conf, researchResult).Get(ctx, &scrapResult); err != nil {
-		logger.Error("Activity failed.", "Error", err)
+		logger.Error("Activity WebScrap failed.", "Error", err)
 		return "", err
 	}
-	logger.Info("Scrap completed.", "result", scrapResult)
+	logger.Info("Scrap completed.", "result : ", scrapResult)
 
 	// LLM Answer
 	llmparam := activities.LLMParam{
@@ -93,10 +93,10 @@ func AIWorkflow(ctx workflow.Context, prompt string) (string, error) {
 	var answer []byte
 	err := workflow.ExecuteActivity(ctx, activities.LLM, conf, llmparam).Get(ctx, &answer)
 	if err != nil {
-		logger.Error("Activity failed.", "Error", err)
+		logger.Error("Activity LLM failed.", "Error : ", err)
 		return "", err
 	}
-	logger.Info("LLM completed.", "result", answer)
+	logger.Info("LLM completed.", "result : ", answer)
 
 	// Convert the result to json
 	var answerObj LLMResponse
@@ -107,16 +107,18 @@ func AIWorkflow(ctx workflow.Context, prompt string) (string, error) {
 
 	// TTS Answer
 	if err := workflow.ExecuteActivity(ctx, activities.TTS, conf, answerObj.Choices[0].Message.Content, workflowID).Get(ctx, &answer); err != nil {
-		logger.Error("Activity failed.", "Error", err)
+		logger.Error("Activity TTS failed.", "Error : ", err)
 		return "", err
 	}
 
 	// Upload to TTS MinIO
-	if err := workflow.ExecuteActivity(ctx, activities.Storage, conf, fmt.Sprintf("%s.mp3", workflowID), fmt.Sprintf(conf.TTSSaveToLocal+"/%s.mp3", workflowID)).Get(ctx, &answer); err != nil {
-		logger.Error("Activity failed.", "Error", err)
+	pathFile := fmt.Sprintf(conf.TTSSaveToLocal+"/%s.mp3", workflowID)
+	fileName := fmt.Sprintf("%s.mp3", workflowID)
+	if err := workflow.ExecuteActivity(ctx, activities.Storage, conf, fileName, pathFile).Get(ctx, &answer); err != nil {
+		logger.Error("Activity Storage failed.", "Error : ", err)
 		return "", err
 	}
-	logger.Info("Storage completed.", "result", answer)
+	logger.Info("Storage completed.", "result: ", pathFile)
 
 	// Return the result
 	return answerObj.Choices[0].Message.Content, nil
