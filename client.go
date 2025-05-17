@@ -28,7 +28,7 @@ func main() {
 		},
 	}
 
-	we, err := c.ExecuteWorkflow(context.Background(), workflowOptions, "AIWorkflow", "คุณชื่ออะไร?")
+	we, err := c.ExecuteWorkflow(context.Background(), workflowOptions, "AIWorkflow", "คุณเป็นใคร") // Replace with your actual workflow function name and parameters
 	if err != nil {
 		log.Fatalln("Unable to execute workflow", err)
 	}

@@ -18,7 +18,7 @@ func TTS(ctx context.Context, conf configs.Config, text string, workflowID strin
 		"input":           text,
 		"voice":           conf.TTSModel,
 		"response_format": "mp3",
-		"speed":           1.25,
+		"speed":           1.1,
 	})
 
 	resp, err := apiClient.Post(utils.Params{
