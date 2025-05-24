@@ -8,7 +8,7 @@ import (
 )
 
 func ClearTemp(ctx context.Context, conf configs.Config, filename string) error {
-	err := utils.DeleteFile(conf.TTSSaveToLocal + filename)
+	err := utils.DeleteFile(conf.TTSSaveToLocal + "/" + filename)
 	if err != nil {
 		return err
 	}
