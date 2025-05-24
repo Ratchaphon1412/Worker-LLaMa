@@ -5,6 +5,7 @@ import (
 
 	"github.com/Ratchaphon1412/worker-llama/activities"
 	"github.com/Ratchaphon1412/worker-llama/configs"
+	"github.com/Ratchaphon1412/worker-llama/worker/drivers/database"
 	"github.com/Ratchaphon1412/worker-llama/workflow"
 	"github.com/caarlos0/env/v11"
 	_ "github.com/joho/godotenv/autoload"
@@ -20,6 +21,10 @@ func main() {
 	if err := env.Parse(&cfg); err != nil {
 		log.Fatalf("Failed to parse env vars: %v", err)
 	}
+	// Set up database
+
+	// Initialize Database
+	database.Connect(&cfg)
 
 	// Create a worker that listens on the llm task queue
 	c, err := client.Dial(client.Options{
@@ -39,6 +44,8 @@ func main() {
 	w.RegisterActivity(activities.LLM)
 	w.RegisterActivity(activities.TTS)
 	w.RegisterActivity(activities.Storage)
+	w.RegisterActivity(activities.UpdateAnswer)
+	w.RegisterActivity(activities.PublisherToChat)
 
 	err = w.Run(worker.InterruptCh())
 	if err != nil {

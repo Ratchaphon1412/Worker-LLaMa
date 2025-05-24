@@ -3,6 +3,7 @@ package workflow
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/Ratchaphon1412/worker-llama/activities"
@@ -36,7 +37,7 @@ type LLMResponse struct {
 }
 
 // Workflow is a Hello World workflow definition.
-func AIWorkflow(ctx workflow.Context, prompt string) (string, error) {
+func AIWorkflow(ctx workflow.Context, chatID uint, redisChanel string, prompt string) (string, error) {
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Minute,
 	}
@@ -117,11 +118,75 @@ func AIWorkflow(ctx workflow.Context, prompt string) (string, error) {
 	// Upload to TTS MinIO
 	pathFile := fmt.Sprintf(conf.TTSSaveToLocal+"/%s.mp3", workflowID)
 	fileName := fmt.Sprintf("%s.mp3", workflowID)
-	if err := workflow.ExecuteActivity(ctx, activities.Storage, conf, fileName, pathFile).Get(ctx, &answer); err != nil {
+	var mediaPublicURL string
+	if err := workflow.ExecuteActivity(ctx, activities.Storage, conf, fileName, pathFile).Get(ctx, &mediaPublicURL); err != nil {
 		logger.Error("Activity Storage failed.", "Error : ", err)
 		return "", err
 	}
 	logger.Info("Storage completed.", "result: ", pathFile)
+
+	// Convert the searchResult to Object for update
+
+	var researchResultCompleted []activities.Search
+
+	for _, item := range researchResult.Items {
+		var image string
+		var thumbnails []activities.Thumbnail
+
+		// ดึงภาพหลักจาก pagemap.cse_image
+		if cseImages, ok := item.Pagemap["cse_image"].([]interface{}); ok && len(cseImages) > 0 {
+			if imgMap, ok := cseImages[0].(map[string]interface{}); ok {
+				if src, ok := imgMap["src"].(string); ok {
+					image = src
+				}
+			}
+		}
+
+		// ดึง thumbnail จาก pagemap.cse_thumbnail
+		if cseThumbs, ok := item.Pagemap["cse_thumbnail"].([]interface{}); ok {
+			for _, thumb := range cseThumbs {
+				if thumbMap, ok := thumb.(map[string]interface{}); ok {
+					width, _ := strconv.Atoi(fmt.Sprintf("%v", thumbMap["width"]))
+					height, _ := strconv.Atoi(fmt.Sprintf("%v", thumbMap["height"]))
+					src, _ := thumbMap["src"].(string)
+					thumbnails = append(thumbnails, activities.Thumbnail{
+						Width:  width,
+						Height: height,
+						Src:    src,
+					})
+				}
+			}
+		}
+
+		researchResultCompleted = append(researchResultCompleted, activities.Search{
+			Kind:        item.Kind,
+			Title:       item.Title,
+			DisplayLink: item.DisplayLink,
+			Link:        item.Link,
+			Image:       image,
+			Thumbnails:  thumbnails,
+		})
+	}
+
+	answerObjectCompleted := activities.Answer{
+		ChatID:   chatID,
+		Question: prompt,
+		Answer:   answerObj.Choices[0].Message.Content,
+		Media:    mediaPublicURL,
+		Search:   researchResultCompleted,
+	}
+
+	// Update Answer in the database
+	if err := workflow.ExecuteActivity(ctx, activities.UpdateAnswer, conf, answerObjectCompleted).Get(ctx, &answer); err != nil {
+		logger.Error("Activity UpdateAnswer failed.", "Error : ", err)
+		return "", err
+	}
+
+	// Publish the media Url to the Redis channel
+	if err := workflow.ExecuteActivity(ctx, activities.PublisherToChat, conf, redisChanel, answerObjectCompleted).Get(ctx, nil); err != nil {
+		logger.Error("Activity PublisherToChat failed.", "Error : ", err)
+		return "", err
+	}
 
 	// Return the result
 	return answerObj.Choices[0].Message.Content, nil

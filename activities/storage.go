@@ -4,15 +4,15 @@ import (
 	"context"
 
 	"github.com/Ratchaphon1412/worker-llama/configs"
-	"github.com/Ratchaphon1412/worker-llama/utils"
+	"github.com/Ratchaphon1412/worker-llama/worker/drivers/storages"
 )
 
-func Storage(ctx context.Context, conf configs.Config, objectName, filePath string) error {
+func Storage(ctx context.Context, conf configs.Config, objectName, filePath string) (string, error) {
 	// Upload the MP3 file to MinIO
-	err := utils.UploadMP3ToMinio(conf.MinioEndpoint, conf.MinioUserAccessKey, conf.MinioUserSecretKey, conf.MinioDefaultBucket, conf.MinioSSLEnabled, objectName, filePath)
+	publicURL, err := storages.UploadMP3ToMinio(conf.MinioEndpoint, conf.MinioPublicURL, conf.MinioUserAccessKey, conf.MinioUserSecretKey, conf.MinioDefaultBucket, conf.MinioSSLEnabled, objectName, filePath)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return publicURL, nil
 }

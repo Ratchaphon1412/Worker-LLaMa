@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/Ratchaphon1412/worker-llama/configs"
-	"github.com/Ratchaphon1412/worker-llama/utils"
+	"github.com/Ratchaphon1412/worker-llama/worker/drivers/http"
 )
 
 type ResearchResult struct {
@@ -27,11 +27,11 @@ type ResearchResult struct {
 
 func Research(ctx context.Context, conf configs.Config, topic string) (ResearchResult, error) {
 
-	apiClient := utils.API{
+	apiClient := http.API{
 		BaseURL: conf.GoogleCustomSearchURL,
 	}
 
-	resp, err := apiClient.Get(utils.Params{
+	resp, err := apiClient.Get(http.Params{
 		Query: map[string]string{
 			"q":   topic,
 			"key": conf.GoogleAPIKEYCustomSearch,

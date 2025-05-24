@@ -5,7 +5,7 @@ import (
 	"io"
 
 	"github.com/Ratchaphon1412/worker-llama/configs"
-	"github.com/Ratchaphon1412/worker-llama/utils"
+	"github.com/Ratchaphon1412/worker-llama/worker/drivers/http"
 )
 
 type LLMParam struct {
@@ -15,11 +15,11 @@ type LLMParam struct {
 
 func LLM(ctx context.Context, conf configs.Config, prompt LLMParam) ([]byte, error) {
 
-	apiClient := utils.API{
+	apiClient := http.API{
 		BaseURL: conf.LLMAPI,
 	}
 
-	jsonPayload := utils.JSONBody(map[string]any{
+	jsonPayload := http.JSONBody(map[string]any{
 		"model": conf.LLMModel,
 		"messages": []map[string]any{
 			{
@@ -35,7 +35,7 @@ func LLM(ctx context.Context, conf configs.Config, prompt LLMParam) ([]byte, err
 		"stream":     false,
 	})
 
-	resp, err := apiClient.Post(utils.Params{
+	resp, err := apiClient.Post(http.Params{
 		Headers: map[string]string{
 			"Authorization": "Bearer " + conf.LLMAPIKey,
 		},

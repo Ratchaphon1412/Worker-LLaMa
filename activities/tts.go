@@ -5,23 +5,24 @@ import (
 	"io"
 
 	"github.com/Ratchaphon1412/worker-llama/configs"
-	"github.com/Ratchaphon1412/worker-llama/utils"
+	"github.com/Ratchaphon1412/worker-llama/worker/drivers/http"
+	"github.com/Ratchaphon1412/worker-llama/worker/drivers/utils"
 )
 
 func TTS(ctx context.Context, conf configs.Config, text string, workflowID string) ([]byte, error) {
 
-	apiClient := utils.API{
+	apiClient := http.API{
 		BaseURL: conf.TTSAPI,
 	}
 
-	jsonPayload := utils.JSONBody(map[string]any{
+	jsonPayload := http.JSONBody(map[string]any{
 		"input":           text,
 		"voice":           conf.TTSModel,
 		"response_format": "mp3",
 		"speed":           1.1,
 	})
 
-	resp, err := apiClient.Post(utils.Params{
+	resp, err := apiClient.Post(http.Params{
 		Headers: map[string]string{
 			"Authorization": "Bearer " + conf.TTSAPIKey,
 		},
