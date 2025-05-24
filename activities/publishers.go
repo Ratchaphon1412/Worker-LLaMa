@@ -21,6 +21,7 @@ func PublisherToChat(ctx context.Context, conf configs.Config, channel string, a
 	if err := database.Redis.Rd.Publish(ctx, channel, answerJson).Err(); err != nil {
 		return err
 	}
+	defer database.Redis.Rd.Close()
 
 	return nil
 }
