@@ -18,3 +18,11 @@ func SaveToFile(filePath string, data []byte) (*os.File, error) {
 
 	return file, nil
 }
+
+func DeleteFile(filePath string) error {
+	err := os.Remove(filePath)
+	if err != nil {
+		return err
+	}
+	return nil
+}

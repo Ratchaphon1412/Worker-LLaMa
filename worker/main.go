@@ -46,7 +46,7 @@ func main() {
 	w.RegisterActivity(activities.Storage)
 	w.RegisterActivity(activities.UpdateAnswer)
 	w.RegisterActivity(activities.PublisherToChat)
-
+	w.RegisterActivity(activities.ClearTemp)
 	err = w.Run(worker.InterruptCh())
 	if err != nil {
 		log.Fatalln("Unable to start worker", err)

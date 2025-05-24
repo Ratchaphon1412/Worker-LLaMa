@@ -188,6 +188,12 @@ func AIWorkflow(ctx workflow.Context, chatID uint, redisChanel string, prompt st
 		return "", err
 	}
 
+	// Clear the temporary file
+	if err := workflow.ExecuteActivity(ctx, activities.ClearTemp, conf, fileName).Get(ctx, nil); err != nil {
+		logger.Error("Activity ClearTemp failed.", "Error : ", err)
+		return "", err
+	}
+
 	// Return the result
 	return answerObj.Choices[0].Message.Content, nil
 }
